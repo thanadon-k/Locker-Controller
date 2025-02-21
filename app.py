@@ -66,7 +66,7 @@ class User(UserMixin):
         self.password = password
         
 users = {
-    "admin": User("admin", "123")  
+    "admin": User("forservice", "forservice")  
 }
     
 @login_manager.user_loader
