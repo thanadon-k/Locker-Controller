@@ -6,18 +6,17 @@
     <div class="controller">
         <div class="navbar">
             <h2>Locker Controller</h2>
-            <ul>
-                <li>
+            <form method="POST" action="{{ url_for('logout') }}">
+                <button type="submit">
                     <i class="fa-solid fa-arrow-right-from-bracket"></i>
-                    <a href="/controller">Log out</a>
-                </li>
-            </ul>
+                </button>
+            </form>
         </div>
 
         <div class="toolbar">
             <div class="quantity-locker">
                 <i class="fa-solid fa-door-closed"></i>
-                <p>2 Locker</p>
+                <p class="locker-count">{{ lockers|length }} Locker</p>
             </div>
 
             <div class="handle-locker">
@@ -51,35 +50,97 @@
                 </div>
             </div>
 
-            <div class="list-inline">
-                <p>Microcontroller lab</p>
-                <p>15</p>
-                <div class="date-time">
-                    <p>18 October 2024</p>
-                    <p>At 8:45 AM</p>
-                </div>
-                <div class="compartment">
-                    <div class="number">1</div>
-                    <div class="number">2</div>
-                    <div class="number">3</div>
-                    <div class="number">4</div>
-                    <div class="number">5</div>
-                    <div class="number">6</div>
-                    <div class="number">7</div>
-                    <div class="number">8</div>
-                    <div class="number">9</div>
-                    <div class="number">10</div>
-                    <div class="number">11</div>
-                    <div class="number">12</div>
-                    <div class="number">13</div>
-                    <div class="number">14</div>
-                    <div class="number">15</div>
-                </div>
-                <div class="open">
-                    <p>Open All</p>
-                </div>
+            <div class="locker-list">
+                {% for locker in lockers %}
+                    <div class="list-inline">
+                        <p>{{ locker["name"]}}</p>
+                        <p>{{ locker["availablecompartment"]|length }}</p>
+                        <div class="date-time">
+                            <p>{{ locker["date"] }}</p>
+                            <p>At {{ locker["time"] }}</p>
+                        </div>
+                        <div class="compartment">
+                            {% for compartment in locker["availablecompartment"] %}
+                                <div class="number {% if compartment['status'] == "open" %} active {% endif %}">
+                                    {{ compartment["compartment"] }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="open" onclick="sendData('{{ locker.token }}')">
+                            <p>Open All</p>
+                        </div>
+                    </div>
+                {% endfor %}
             </div>
         </div>
     </div>
+
+    <script>
+        const socket = io("http://127.0.0.1:5001")
+
+        socket.on('connect', function() {
+            console.log("✅ Connected to SocketIO server.");
+        });
+
+        socket.on('connect_error', function(error) {
+            console.error("❌ Socket connection error:", error);
+        });
+
+        socket.on('data_update', function(data) {
+            console.log("Received data_update event:", data);
+
+            if (!data.value || data.value.length === 0) {
+                console.log("No lockers data received.");
+                return;
+            }
+
+            document.querySelector(".locker-count").innerText = data.value.length + " Locker";
+
+            const lockerListDiv = document.querySelector('.locker-list');
+            let lockerHtml = '';
+
+            data.value.forEach(locker => {
+                lockerHtml += `<div class="list-inline">
+                    <p>${locker.name}</p>
+                    <p>${locker.availablecompartment.length}</p>
+                    <div class="date-time">
+                        <p>${locker.date}</p>
+                        <p>At ${locker.time}</p>
+                    </div>
+                    <div class="compartment">`;
+
+                locker.availablecompartment.forEach(compartment => {
+                    lockerHtml += `<div class="number ${compartment.status === "open" ? "active" : ""}">
+                        ${compartment.compartment}
+                    </div>`;
+                });
+
+                lockerHtml += `</div>
+                    <div class="open" onclick="sendData('${locker.token}')">
+                        <p>Open All</p>
+                    </div>
+                </div>`;
+            });
+
+            lockerListDiv.innerHTML = lockerHtml;
+        });
+
+        function sendData(token) {
+            fetch('/publish', {
+                method: 'POST',  
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ token: token }) 
+            })
+            .then(response => response.json()) 
+            .then(data => {
+                console.log('Success:', data); 
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        }
+    </script>    
 
 {% endblock %}
