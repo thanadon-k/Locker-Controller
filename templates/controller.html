@@ -51,26 +51,33 @@
             </div>
 
             <div class="locker-list">
-                {% for locker in lockers %}
-                    <div class="list-inline">
-                        <p>{{ locker["name"]}}</p>
-                        <p>{{ locker["availablecompartment"]|length }}</p>
-                        <div class="date-time">
-                            <p>{{ locker["date"] }}</p>
-                            <p>At {{ locker["time"] }}</p>
-                        </div>
-                        <div class="compartment">
-                            {% for compartment in locker["availablecompartment"] %}
-                                <div class="number {% if compartment['status'] == "open" %} active {% endif %}">
-                                    {{ compartment["compartment"] }}
-                                </div>
-                            {% endfor %}
-                        </div>
-                        <div class="open" onclick="sendData('{{ locker.token }}')">
-                            <p>Open All</p>
-                        </div>
+                {% if lockers|length == 0%}
+                    <div class="empty">
+                        <img src="/static/images/empty.png" alt="No Lockers Available">
+                        <p>No Lockers Available</p>
                     </div>
-                {% endfor %}
+                {% else %}
+                    {% for locker in lockers %}
+                        <div class="list-inline">
+                            <p>{{ locker["name"]}}</p>
+                            <p>{{ locker["availablecompartment"]|length }}</p>
+                            <div class="date-time">
+                                <p>{{ locker["date"] }}</p>
+                                <p>At {{ locker["time"] }}</p>
+                            </div>
+                            <div class="compartment">
+                                {% for compartment in locker["availablecompartment"] %}
+                                    <div class="number {% if compartment['status'] == "open" %} active {% endif %}">
+                                        {{ compartment["compartment"] }}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            <div class="open">
+                                <p onclick="sendData('{{ locker.token }}')">Open All</p>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
             </div>
         </div>
     </div>

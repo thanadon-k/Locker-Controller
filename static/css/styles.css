@@ -306,6 +306,24 @@ body {
             }
 
             .locker-list {
+                .empty{
+                    border: 1px solid red;
+                    height: 600px;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: center;
+                    opacity: 0.5;
+
+                    img{
+                        width: 100px;
+                    }
+
+                    p{
+                        font-size: 14px;
+                    }
+                }
+
                 .list-inline {
                     display: flex;
                     justify-content: space-between;
@@ -350,7 +368,6 @@ body {
                         justify-content: center;
                         align-items: center;
                         width: 160px;
-                        cursor: pointer;
 
                         p {
                             width: 70px;
@@ -358,6 +375,7 @@ body {
                             color: #ffffff;
                             background-color: #3961AA;
                             border-radius: 7px;
+                            cursor: pointer;
                         }
                     }
 

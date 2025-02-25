@@ -9,13 +9,13 @@ import os
 
 MQTT_BROKER = "172.20.10.7" 
 MQTT_PORT = 1883
-MQTT_OPEN_ALL = "locker/open"
+MQTT_OPEN_ALL = "locker/open_all"
 MQTT_LOCKERS = "lockers"
 
 mqtt_client = mqtt.Client()
 
-# data in lockers = {"name": "Microcontroller LAB", "availablecompartment": [{"compartment": "1", "status": "close"}], "time": "18:43", "date": "20/2/2025", "token": "0"}
-lockers = []
+# data in lockers = {"name": "Microcontroller LAB", "availablecompartment": [{"compartment": "1", "status": "close"}], "time": "18:43", "date": "20/2/2025", "token": "eZGUlpjLx99thW87s"}
+lockers = [{"name": "Microcontroller LAB", "availablecompartment": [{"compartment": "1", "status": "close"}], "time": "18:43", "date": "20/2/2025", "token": "eZGUlpjLx99thW87s"}]
 
 def on_connect(client, userdata, flags, rc):
     print("Connected to MQTT Broker!" if rc == 0 else f"Failed to connect, return code {rc}")
@@ -27,16 +27,16 @@ def on_message(client, userdata, msg):
         ret["availablecompartment"] = [{"compartment": compartment, "status": "close"} for compartment in ret["availablecompartment"].split(',')]
         
         for compartment in ret["availablecompartment"]:
-            client.subscribe(f"{ret['token']}/{compartment['compartment']}/status")
+            client.subscribe(f"{ret['token']}/+/{compartment['compartment']}/status")
             
         lockers.append(ret) 
     
     status_parts = msg.topic.split('/')
-    if len(status_parts) == 3 and status_parts[2] == "status":
+    if len(status_parts) == 4 and status_parts[3] == "status":
         for locker in lockers:
             if locker["token"] == status_parts[0]: 
                 for compartment in locker["availablecompartment"]:
-                    if compartment["compartment"] == status_parts[1]: 
+                    if compartment["compartment"] == status_parts[2]: 
                         compartment["status"] = msg.payload.decode().lower()
                         break 
                    
@@ -66,7 +66,7 @@ class User(UserMixin):
         self.password = password
         
 users = {
-    "admin": User("forservice", "forservice")  
+    "forservice": User("forservice", "forservice")  
 }
     
 @login_manager.user_loader
@@ -120,6 +120,6 @@ def prevent_back_after_logout(response):
     return response
 
 if __name__ == '__main__':
-    socketio.run(app, host="127.0.0.1", port=5001, debug=True)
+    socketio.run(app, host="0.0.0.0", port=5001, debug=True)
 
 
